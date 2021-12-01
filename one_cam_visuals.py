@@ -6,7 +6,7 @@ import signal
 from matplotlib import pyplot as plt
 from matplotlib import animation
 import pdb
-# import cv2
+import cv2
 
 
 
@@ -51,17 +51,24 @@ if __name__ == '__main__':
 
     killer = GracefulKiller()
 
-    c1 = mp.Process(target = get_events, args = (1,))
-    c2 = mp.Process(target = get_events, args = (2,))
-    c3 = mp.Process(target = get_events, args = (3,))
+    cam_id = 1
 
-    c1.start()
-    c2.start()
-    c3.start()
+    fps = 1000
+    delta_t = 1/fps
+    port_nb = 7770 + cam_id
 
-    c1.join()
-    c2.join()
-    c3.join()
+
+    t_start = time.time()
+    count = 0
+    with NetworkEventInput(address='172.16.222.46', port=port_nb) as i:
+        for event in i:
+            if killer.kill_now:
+                break
+            if time.time() >= t_start + delta_t:
+                t_start = time.time()
+                count = 0
+                print("Cam %d @ %ld : (%d,%d) [%d]" %(cam_id, event.timestamp, event.x, event.y, event.polarity))
+                
 
 
     print("\n\n\n Streaming has been stopped by user :) ")
