@@ -20,56 +20,83 @@ class GracefulKiller:
     self.kill_now = True
 
 
-def get_events(cam_id):
+def visualize(cam_id):
 
-    global killer
+  global mat
 
-
-    fps = 1000
-    delta_t = 1/fps
-    port_nb = 7770 + cam_id
-
-
-    t_start = time.time()
-    count = 0
-    with NetworkEventInput(address='172.16.222.46', port=port_nb) as i:
-        for event in i:
-            if killer.kill_now:
-                break
-            if time.time() >= t_start + delta_t:
-                t_start = time.time()
-                count = 0
-                print("Cam %d @ %ld : (%d,%d) [%d]" %(cam_id, event.timestamp, event.x, event.y, event.polarity))
-                
-            
-
+  # while not killer.kill_now:
+  #   cv2.imshow('frame', mat)
+  #   cv2.waitKey(1)
+  # cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
     
-    global killer
+  global killer, mat
 
-    killer = GracefulKiller()
+  killer = GracefulKiller()
 
-    cam_id = 1
+  cam_id = 1
 
-    fps = 1000
-    delta_t = 1/fps
-    port_nb = 7770 + cam_id
+  mat = np.zeros((480,640))
+
+  delta_t = 0.010 #1ms
+  fps = 50
+  max_sfc = 1/delta_t/fps # 40 fo 25fps and 1000 sb/sec
+  
+  port_nb = 7770 + cam_id
+
+  v1 = mp.Process(target=visualize, args=(cam_id,))
+  v1.start()
 
 
-    t_start = time.time()
-    count = 0
-    with NetworkEventInput(address='172.16.222.46', port=port_nb) as i:
-        for event in i:
-            if killer.kill_now:
-                break
-            if time.time() >= t_start + delta_t:
-                t_start = time.time()
-                count = 0
-                print("Cam %d @ %ld : (%d,%d) [%d]" %(cam_id, event.timestamp, event.x, event.y, event.polarity))
+
+
+  t_sfc = time.time()
+  t_evc = t_sfc
+  ev_count = 0
+  sfc = 0 # sub-frame counter
+
+  with NetworkEventInput(address='172.16.222.46', port=port_nb) as i:
+      for event in i:
+          t1 = time.time()
+          
+          mat[event.y, event.x] += 1
+          ev_count += 1
+
+          if killer.kill_now:
+              print("Killing stuff")
+              break
+
+          t_current = time.time() 
+
+          # Check if new subfram needs to be started
+          if t_current - t_sfc >= (delta_t):
+              sfc += 1
+
+              # Check if visual frame needs to be shown
+              if sfc >= max_sfc:
                 
+                
+                cv2.imshow("frame", mat)
+                cv2.waitKey(1)      
+                sfc = 0      
+
+              mat = mat*0.5
+
+              t_sfc = t_current
+
+              if t_current - t_evc >= 1:
+                # print("%d events per sec" %(ev_count))
+                ev_count = 0
+                t_evc = t_current
+              # print("Cam %d @ %ld : (%d,%d) [%d]" %(cam_id, event.timestamp, event.x, event.y, event.polarity))
+        
 
 
-    print("\n\n\n Streaming has been stopped by user :) ")
+  v1.join()
+
+  cv2.destroyAllWindows()
+
+  print("\n\n\n Streaming has been stopped by user :) ")
 
