@@ -3,10 +3,9 @@ import multiprocessing as mp
 import time
 import numpy as np
 import signal
-from matplotlib import pyplot as plt
-from matplotlib import animation
 import pdb
 import cv2
+import sys
 
 
 
@@ -20,15 +19,7 @@ class GracefulKiller:
     self.kill_now = True
 
 
-def visualize(cam_id):
-
-  global mat
-
-  # while not killer.kill_now:
-  #   cv2.imshow('frame', mat)
-  #   cv2.waitKey(1)
-  # cv2.destroyAllWindows()
-
+# python3 one_cam_visuals.py <cam_id>
 
 if __name__ == '__main__':
     
@@ -36,18 +27,17 @@ if __name__ == '__main__':
 
   killer = GracefulKiller()
 
-  cam_id = 1
 
-  mat = np.zeros((480,640))
+  # Get Arguments
+  cam_id = int(sys.argv[1])
+  print(cam_id)
 
-  delta_t = 0.010 #1ms
-  fps = 50
-  max_sfc = 1/delta_t/fps # 40 fo 25fps and 1000 sb/sec
+
+  delta_t = 0.001 #1ms
+  fps = 20
+  max_sfc = 1/delta_t/fps # 40 for 25fps and 1000 sb/sec
   
   port_nb = 7770 + cam_id
-
-  v1 = mp.Process(target=visualize, args=(cam_id,))
-  v1.start()
 
 
 
@@ -57,6 +47,7 @@ if __name__ == '__main__':
   ev_count = 0
   sfc = 0 # sub-frame counter
 
+  mat = np.zeros((480,640))
   with NetworkEventInput(address='172.16.222.46', port=port_nb) as i:
       for event in i:
           t1 = time.time()
@@ -65,7 +56,6 @@ if __name__ == '__main__':
           ev_count += 1
 
           if killer.kill_now:
-              print("Killing stuff")
               break
 
           t_current = time.time() 
@@ -82,19 +72,17 @@ if __name__ == '__main__':
                 cv2.waitKey(1)      
                 sfc = 0      
 
-              mat = mat*0.5
+                mat = mat*0.0
 
               t_sfc = t_current
 
               if t_current - t_evc >= 1:
-                # print("%d events per sec" %(ev_count))
+                print("%d events per sec" %(ev_count))
                 ev_count = 0
                 t_evc = t_current
               # print("Cam %d @ %ld : (%d,%d) [%d]" %(cam_id, event.timestamp, event.x, event.y, event.polarity))
         
 
-
-  v1.join()
 
   cv2.destroyAllWindows()
 
