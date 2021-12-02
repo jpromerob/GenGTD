@@ -5,6 +5,7 @@ import cv2 as cv
 import matplotlib.pyplot as plt
 from dv import AedatFile
 import numpy as np
+import h5py
 from numpy import genfromtxt
 
 
@@ -30,6 +31,7 @@ if __name__ == "__main__":
     cp = poses[idx,:]
     in_sync = False
 
+    hf = h5py.File('all_data.h5', 'w')
 
     for i in range(3):
         cam_id = i+1
@@ -44,7 +46,8 @@ if __name__ == "__main__":
         next_print = 0 # when to print log
         sec_count = 0 # seconds elapsed
 
-        f = open("all_data_cam" + str(cam_id) + "_v" + str(version) + ".csv", 'a')
+        adat_file = "all_data_cam" + str(cam_id) + "_v" + str(version) + ".csv"
+        f = open(adat_file, 'a')
         with AedatFile(inputfile) as ifile:
             # loop through the "events" stream
             for e in ifile["undistortedEvents"]:     
@@ -73,3 +76,8 @@ if __name__ == "__main__":
         elapsed = stop - start
         print("Parser took: " + str(elapsed-1) + " seconds.")
         
+        all_data = genfromtxt(adat_file, delimiter=',')
+        hf.create_dataset("cam" +str(cam_id), data=all_data)
+
+
+    hf.close()
