@@ -8,17 +8,6 @@ import numpy as np
 from numpy import genfromtxt
 
 
-
-    
-'''
-This code produces 1 image out of events every 1/<fps>ms
-Images are ignored when less than <activity>% of the pixels are inactive 
-Among the used images, one will be stored after visual/manual inspection
-The image to be stored needs to be evidently affected by lens distortion
-The distorted image is necesary to check distortion maps
-'''
-
-
 if __name__ == "__main__":
 
 
@@ -44,21 +33,16 @@ if __name__ == "__main__":
 
     for i in range(3):
         cam_id = i+1
-        my_dpi = 40
-        x_max = 640
-        y_max = 480
-
-        screen = np.zeros((x_max, y_max),dtype=int)
-
+        
         inputfile = path + "/cam"+ str(cam_id)+"/cam"+ str(cam_id)+ "_v" + str(version) + ".aedat4"
 
         start = time.time()
 
-        ev_count = 0
-        next_print = 0
-        sec_count = 0
+        ev_count = 0 # to count events
 
-
+        # Giving info to user (about processing)
+        next_print = 0 # when to print log
+        sec_count = 0 # seconds elapsed
 
         f = open("all_data_cam" + str(cam_id) + "_v" + str(version) + ".csv", 'a')
         with AedatFile(inputfile) as ifile:
@@ -81,8 +65,6 @@ if __name__ == "__main__":
                     print("Done with %d seconds" %(sec_count))
                     sec_count +=1 
 
-                # print('{:.0f} : ({: 3.6f}, {: 3.6f}, {: 3.6f})'.format(cp[0], cp[1], cp[2], cp[3]))
-                # print('{:d} : ({: d},{: d})'.format(t, x, y))
         f.close()
             
 
