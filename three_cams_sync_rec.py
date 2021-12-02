@@ -6,6 +6,7 @@ import signal
 import pdb
 import cv2
 import sys
+from dv import AedatFile
 
 
 class GracefulKiller:
@@ -37,8 +38,12 @@ def get_events(cam_id, cam_shape, arr, rdy):
   ev_count = 0
   sfc = 0 # sub-frame counter
 
-  with NetworkEventInput(address='172.16.222.46', port=port_nb) as i:
-    for event in i:
+  version = 1
+
+  inputfile = "/home/juan/CameraSetup/Recordings_3cams/cam"+ str(cam_id)+"/cam"+ str(cam_id)+ "_v" + str(version) + ".aedat4"
+  with AedatFile(inputfile) as ifile:
+    # loop through the "events" stream
+    for event in ifile["undistortedEvents"]:
 
       if killer.kill_now:
           break
