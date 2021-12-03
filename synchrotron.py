@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from dv import AedatFile
 import numpy as np
 import h5py
+import math
 from numpy import genfromtxt
 
 
@@ -77,7 +78,7 @@ def get_transmats(cam_poses):
                              [0,0,0,1]])
 
         # General transformation matrix 'camera to world' (c2w)
-        c2w[:,:,i] = mat_tran.dot(mat_rotx).dot(mat_roty).dot(mat_rotz)
+        c2w[:,:,i] = mat_tran.dot(mat_rotz).dot(mat_roty).dot(mat_rotx)
     
     
     return c2w
@@ -96,6 +97,41 @@ def define_object_pose(c2w, ground_truth):
     return perspective[0:3,:]
 
 
+def get_angles(obj_poses_c):
+    nb_pts = len(obj_poses_c)
+    angles = np.zeros((nb_pts, 3, 2))
+    for i in range(3):
+        # print("\n\n\n\n\n\n\n\n\n\n\n")
+        for idx in range(nb_pts):
+            angles[idx, i, 0] = (180/math.pi)*math.atan2(obj_poses_c[idx, 0, i], -obj_poses_c[idx, 2, i]) # delta_x/delta_z ...  in -z direction
+            angles[idx, i, 1] = (180/math.pi)*math.atan2(obj_poses_c[idx, 1, i], -obj_poses_c[idx, 2, i]) # delta_y/delta_z ...  in -z direction
+            # pdb.set_trace()
+
+
+            # Smaller possible angle magnitude
+            if(angles[idx, i, 0]>180):
+                angles[idx, i, 0] = 360-angles[idx, i, 0]
+            if(angles[idx, i, 1]>180):
+                angles[idx, i, 1] = 360-angles[idx, i, 1]
+            if(angles[idx, i, 0]<-180):
+                angles[idx, i, 0] = 360+angles[idx, i, 0]
+            if(angles[idx, i, 1]<-180):
+                angles[idx, i, 1] = 360+angles[idx, i, 1]
+
+            # Add a sign to the angle
+            if(obj_poses_c[idx, 0, i] < 0):
+                angles[idx, i, 0] = -angles[idx, i, 0]
+            if(obj_poses_c[idx, 1, i] < 0):
+                angles[idx, i, 1] = -angles[idx, i, 1]
+
+            # pdb.set_trace()
+
+
+    return angles
+
+
+
+
 if __name__ == "__main__":
 
 
@@ -110,12 +146,28 @@ if __name__ == "__main__":
     pose_file = path + "/poses_v" + str(version) + ".csv"
 
 
-    poses = genfromtxt(pose_file, delimiter=',')
-    poses[:,0] = poses[:,0]*1000000
+    # Load Object Poses in World Space
+    optitrack_data = genfromtxt(pose_file, delimiter=',')
+    optitrack_data[:,0] = optitrack_data[:,0]*1000000
 
 
-    idx = 0
-    cp = poses[idx,:]
+
+    # Calculate Object Poses in Camera Space
+    cam_poses = set_cam_poses()
+    c2w = get_transmats(cam_poses)
+    nb_pts = len(optitrack_data)
+    obj_poses_t = np.zeros((nb_pts,1)) # t
+    obj_poses_w = np.zeros((nb_pts, 3)) # (x, y, z) 
+    obj_poses_c = np.zeros((nb_pts, 3, 3)) # (x, y, z) | cam<1,2,3>
+    for idx in range(nb_pts):
+        obj_poses_t[idx] = optitrack_data[idx,0]
+        obj_poses_w[idx, :] = optitrack_data[idx,1:4]
+        obj_poses_c[idx, :,:] = define_object_pose(c2w, np.append(obj_poses_w[idx, :], 1))
+
+
+    angles = get_angles(obj_poses_c)
+
+
     in_sync = False
 
     hf = h5py.File('all_data.h5', 'w')
@@ -133,6 +185,8 @@ if __name__ == "__main__":
         next_print = 0 # when to print log
         sec_count = 0 # seconds elapsed
 
+        idx = 0
+
         adat_file = "all_data_cam" + str(cam_id) + "_v" + str(version) + ".csv"
         f = open(adat_file, 'a')
         with AedatFile(inputfile) as ifile:
@@ -142,11 +196,10 @@ if __name__ == "__main__":
                 ev_count+= 1
 
                 # Synchronization loop (since pose recording starts before event recording)
-                while e.timestamp >= cp[0]:
+                while e.timestamp >= obj_poses_t[idx]:
                     idx += 1
-                    cp = poses[idx,:]    
 
-                line = '{:.0f},{: 3.0f},{: 3.0f},{: 3.6f},{: 3.6f},{: 3.6f}\n'.format(e.timestamp, e.x, e.y, cp[1], cp[2], cp[3])
+                line = '{:.0f},{: 3.0f},{: 3.0f},{: 3.6f},{: 3.6f},{: 3.6f},{: 3.6f},{: 3.6f}\n'.format(e.timestamp, e.x, e.y, obj_poses_c[idx, 0, cam_id-1], obj_poses_c[idx, 1, cam_id-1], obj_poses_c[idx, 2, cam_id-1], angles[idx,cam_id-1,0], angles[idx,cam_id-1,1])
                 f.write(line)
                 
 
