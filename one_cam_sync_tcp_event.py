@@ -38,6 +38,8 @@ def get_events(cam_id, cam_shape, arr, ready):
   sfc = 0 # sub-frame counter
 
   mat = np.zeros(cam_shape)
+
+
   with NetworkEventInput(address='172.16.222.46', port=port_nb) as i:
     for event in i:
 
@@ -91,6 +93,13 @@ if __name__ == '__main__':
     
   global killer
 
+  try:
+    cam_id = int(sys.argv[1])
+  except:
+    quit()
+  
+
+
   ready = False
 
   print(mp.cpu_count())
@@ -103,8 +112,8 @@ if __name__ == '__main__':
   arr = mp.Array('d', np.zeros((np.prod(cam_shape),1)), lock=mp.Lock())
   tam = np.frombuffer(arr.get_obj(), dtype="d").reshape(cam_shape)
 
-  p1 = mp.Process(target=get_events, args=(1, cam_shape, arr, ready))
-  v1 = mp.Process(target=visualize, args=(1, cam_shape, tam, ready))
+  p1 = mp.Process(target=get_events, args=(cam_id, cam_shape, arr, ready))
+  v1 = mp.Process(target=visualize, args=(cam_id, cam_shape, tam, ready))
 
 
 
