@@ -20,8 +20,8 @@ class GracefulKiller:
 
 def cleaner(cam_id, cam_shape, arr, ready):
 
-  delta_t = 0.001 #1ms
-  fps = 50
+  delta_t = 0.0005 #1ms
+  fps = 25
   max_sfc = 1/delta_t/fps # 40 for 25fps and 1000 sb/sec
   
   t_sfc = time.time() 
@@ -48,27 +48,13 @@ def cleaner(cam_id, cam_shape, arr, ready):
 def update_matrix(buff, arr):
   for idx in range(buff.shape[0]):
       arr[buff[idx][2]*640 + buff[idx][1]] += 1
-    # print("      %ld : (%d,%d)" %(buff[idx][0], buff[idx][1], buff[idx][2]))
-    # buffer[idx][0]
-    # buffer[idx][1]
-    # buffer[idx][2]
 
 
 def get_events(cam_id, cam_shape, arr, ready):
 
 
-  delta_t = 0.001 #1ms
-  fps = 50
-  max_sfc = 1/delta_t/fps # 40 for 25fps and 1000 sb/sec
   
   port_nb = 7770 + cam_id
-
-  t_sfc = time.time()
-  t_evc = t_sfc
-  ev_count = 0
-  sfc = 0 # sub-frame counter
-
-  mat = np.zeros(cam_shape)
 
   nb_proc = 10
   p_list = []
@@ -84,14 +70,12 @@ def get_events(cam_id, cam_shape, arr, ready):
       else:
         if idx < len(p_list)-1:
           idx += 1
-          p_list[idx].join()
         else:
           idx = 0
-          p_list[idx].join()
 
-        p_list[idx] = mp.Process(target=update_matrix, args=(buff, arr))
-      
-      p_list[idx].start()
+        if not p_list[idx].is_alive():
+          p_list[idx] = mp.Process(target=update_matrix, args=(buff, arr))
+          p_list[idx].start()
 
 
 def visualize(cam_id, cam_shape, tam, ready):
@@ -103,7 +87,7 @@ def visualize(cam_id, cam_shape, tam, ready):
       cv2.imshow("frame", tam)
       cv2.waitKey(1) 
       ready.value = 0
-    
+
 
 if __name__ == '__main__':
     
