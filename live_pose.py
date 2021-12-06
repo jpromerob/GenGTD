@@ -1,5 +1,12 @@
 
 # coding: utf-8
+
+'''
+
+This script is meant to check that poses in world and camera space make sense
+
+'''
+
 import argparse
 import attr
 import natnet
@@ -14,7 +21,9 @@ import h5py
 import math
 from numpy import genfromtxt
 
-
+'''
+This function sets the camera poses based on manual readings from optitrack (usin camera marker 'hat')
+'''
 def set_cam_poses():
     cam_poses = np.zeros((3,6))
 
@@ -102,6 +111,9 @@ def define_object_pose(c2w, ground_truth):
     return perspective[0:3,:]
 
 
+'''
+This functions determines the angular 'distance' between camera and object in planez XZ and YZ
+'''
 def get_angles(obj_pose, cam_pose):
     angles = np.zeros(2)
     angles[0] = (180/math.pi)*math.atan2((obj_pose[0] - cam_pose[0]),(obj_pose[2] - cam_pose[2])) + 180 # delta_x/delta_z
@@ -152,7 +164,6 @@ class ClientApp(object):
 
                 line = '({: 3.3f},{: 3.3f},{: 3.3f}) --> ({: 3.3f},{: 3.3f},{: 3.3f}) | ({: 3.3f},{: 3.3f})\n'.format(b.position[0], b.position[1], b.position[2],cp[0,cam_id-1], cp[1,cam_id-1], cp[2,cam_id-1], angles[0], angles[1])
                 print(line)
-                # pdb.set_trace()
 
 def main():    
 
@@ -163,12 +174,6 @@ def main():
     cam_poses = set_cam_poses()
     c2w = get_transmats(cam_poses)
 
-    print(c2w[:,:,0])
-    print(c2w[:,:,1])
-    print(c2w[:,:,2])
-
-
-    print("Writing poses to *.csv")
     try:
         app = ClientApp.connect()
         app.run()
@@ -181,5 +186,4 @@ if __name__ == '__main__':
     global f
     main()
 
-    print("Pose dataset created :)")
 

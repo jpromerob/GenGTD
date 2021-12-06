@@ -2,12 +2,17 @@
 # coding: utf-8
 from __future__ import print_function
 
+'''
+This script is used to save object pose during dataset recordings.
+'''
+
 import argparse
 import time
 import attr
 import natnet
 import csv
 import pdb
+from datetime import datetime
 
 global f 
 
@@ -49,8 +54,13 @@ def main():
 
 if __name__ == '__main__':
 
+
+    now = datetime.now() # current date and time
+    date_time = now.strftime("%Y-%m-%d_%Hh%M")
+    print("date and time:",date_time)
+
     global f
-    f = open('data.csv', 'a')
+    f = open('gtd_' + date_time+'.csv', 'a') #gtd: ground truth data
     main()
     f.close()
 

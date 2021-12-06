@@ -6,7 +6,7 @@ import signal
 import pdb
 import cv2
 import sys
-
+import socket
 
 class GracefulKiller:
   kill_now = False
@@ -88,8 +88,6 @@ if __name__ == '__main__':
     
   global killer
 
-
-  print(mp.cpu_count())
 
   killer = GracefulKiller()
 
