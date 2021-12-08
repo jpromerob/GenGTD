@@ -18,9 +18,9 @@ class GracefulKiller:
     self.kill_now = True
 
 
-def cleaner(cam_id, cam_shape, arr, ready):
+def refresh(cam_id, cam_shape, arr, ready):
 
-  delta_t = 0.0005 #1ms
+  delta_t = 0.001 #1ms
   fps = 25
   max_sfc = 1/delta_t/fps # 40 for 25fps and 1000 sb/sec
   
@@ -30,7 +30,7 @@ def cleaner(cam_id, cam_shape, arr, ready):
   while not killer.kill_now:
 
     t_current = time.time() 
-    # Check if new subfram needs to be started
+    # Check if new subframe needs to be started
     if t_current - t_sfc >= (delta_t):
       sfc += 1
 
@@ -38,14 +38,15 @@ def cleaner(cam_id, cam_shape, arr, ready):
       if sfc >= max_sfc:
         ready.value = 1
 
-        sfc = 0      
+      sfc = 0      
 
-        arr[:] = np.zeros(np.prod(cam_shape))
+      # HERE: use current content before removing everything 
+      arr[:] = np.zeros(np.prod(cam_shape))
 
       t_sfc = t_current
 
 
-def update_matrix(buff, arr):
+def insert_events(buff, arr):
   for idx in range(buff.shape[0]):
       arr[buff[idx][2]*640 + buff[idx][1]] += 1
 
@@ -65,7 +66,7 @@ def get_events(cam_id, cam_shape, arr, ready):
           break
       # print(buffer.shape)
       if len(p_list) < nb_proc:
-        p_list.append(mp.Process(target=update_matrix, args=(buff, arr)))
+        p_list.append(mp.Process(target=insert_events, args=(buff, arr)))
         idx = len(p_list)-1
       else:
         if idx < len(p_list)-1:
@@ -74,7 +75,7 @@ def get_events(cam_id, cam_shape, arr, ready):
           idx = 0
 
         if not p_list[idx].is_alive():
-          p_list[idx] = mp.Process(target=update_matrix, args=(buff, arr))
+          p_list[idx] = mp.Process(target=insert_events, args=(buff, arr))
           p_list[idx].start()
 
 
@@ -113,7 +114,7 @@ if __name__ == '__main__':
   tam = np.frombuffer(arr.get_obj(), dtype="d").reshape(cam_shape)
 
   p1 = mp.Process(target=get_events, args=(cam_id, cam_shape, arr, ready))
-  c1 = mp.Process(target=cleaner, args=(cam_id, cam_shape, arr, ready))
+  c1 = mp.Process(target=refresh, args=(cam_id, cam_shape, arr, ready))
   v1 = mp.Process(target=visualize, args=(cam_id, cam_shape, tam, ready))
 
 
