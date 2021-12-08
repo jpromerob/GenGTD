@@ -51,7 +51,7 @@ def refresh(cam_shape, fast_arr, ready):
  
       t_sfc = t_current
 
-      #HERE
+      #HERE: the array is ready
 
 
 def insert_events(buff, fast_arr, slow_arr):
@@ -88,13 +88,13 @@ def receive_events(cam_id, fast_arr, slow_arr):
 
 def visualize(cam_shape, slow_arr, ready):
 
-  tam = np.frombuffer(slow_arr.get_obj(), dtype="d").reshape(cam_shape)
+  pixmat = np.frombuffer(slow_arr.get_obj(), dtype="d").reshape(cam_shape)
 
   while not killer.kill_now:
-    # tam = np.array(fast_arr).reshape(cam_shape)
+    
     if ready.value == 1:
 
-      cv2.imshow("frame", tam)
+      cv2.imshow("frame", pixmat)
       cv2.waitKey(1) 
       ready.value = 0
         
@@ -105,16 +105,14 @@ if __name__ == '__main__':
     
   global killer
 
+
   try:
     cam_id = int(sys.argv[1])
   except:
+    print("Try 'python3 tcp_event_handler.py <cam_id>'")
     quit()
   
-
-
-  ready = False
-
-  print(mp.cpu_count())
+  print("# of processors available: %d" %(mp.cpu_count()))
 
   killer = GracefulKiller()
 
