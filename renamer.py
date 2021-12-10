@@ -27,3 +27,4 @@ if __name__ == '__main__':
                 new_name = path + '/' + 'cam' + str(i) + '_v' + str(version) + '.aedat4'
                 print(old_name)
                 print(new_name)
+                os.rename(old_name, new_name)
