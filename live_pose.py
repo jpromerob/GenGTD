@@ -154,10 +154,10 @@ class ClientApp(object):
 
     def callback(self, rigid_bodies, markers, timing):
 
-        global cam_poses, c2w, cam_id
+        global cam_poses, c2w, cam_id, asset_id
         
         for b in rigid_bodies:
-            if b.id_ == 1:
+            if b.id_ == asset_id:
                 ground_truth = [b.position[0], b.position[1], b.position[2], 1]
                 cp = define_object_pose(c2w, ground_truth)
                 angles = get_angles(cp[:,cam_id-1], np.array([0,0,0]))
@@ -167,9 +167,27 @@ class ClientApp(object):
 
 def main():    
 
-    global cam_poses, c2w, cam_id
+    global cam_poses, c2w, cam_id, asset_id
 
-    cam_id = int(sys.argv[1])
+    try:
+        cam_id = int(sys.argv[1])
+        asset_id = int(sys.argv[2]) # The id of the asset (hammer, stimulus, camhat) in optitrack
+
+        if asset_id == 1:
+            print("Showing hammer poses")
+        elif asset_id == 2:
+            print("Showing camhat poses")
+        elif asset_id == 3:
+            print("Showing stimulus poses")
+        else:
+            print("Wrong asset_id (Hammer: 1, Camhat: 2, Stimulus: 3)")
+            quit()
+
+        time.sleep(3)
+
+    except:
+        print("Usage: python3 live_pose <cam_id> <asset_id>")
+        quit()
 
     cam_poses = set_cam_poses()
     c2w = get_transmats(cam_poses)
