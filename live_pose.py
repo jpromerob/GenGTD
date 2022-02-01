@@ -161,8 +161,8 @@ class ClientApp(object):
                 ground_truth = [b.position[0], b.position[1], b.position[2], 1]
                 cp = define_object_pose(c2w, ground_truth)
                 angles = get_angles(cp[:,cam_id-1], np.array([0,0,0]))
-
-                line = '({: 3.3f},{: 3.3f},{: 3.3f}) --> ({: 3.3f},{: 3.3f},{: 3.3f}) | ({: 3.3f},{: 3.3f})\n'.format(b.position[0], b.position[1], b.position[2],cp[0,cam_id-1], cp[1,cam_id-1], cp[2,cam_id-1], angles[0], angles[1])
+                gt = c2w[:,:,cam_id-1].dot(np.array([cp[0,cam_id-1], cp[1,cam_id-1], cp[2,cam_id-1], 1]))
+                line = ' ({: 3.3f},{: 3.3f},{: 3.3f}) --> ({: 3.3f},{: 3.3f},{: 3.3f}) | ({: 3.3f},{: 3.3f}) \n ({: 3.3f},{: 3.3f},{: 3.3f}) <--\n'.format(b.position[0], b.position[1], b.position[2],cp[0,cam_id-1], cp[1,cam_id-1], cp[2,cam_id-1], angles[0], angles[1], gt[0], gt[1], gt[2])
                 print(line)
 
 def main():    
