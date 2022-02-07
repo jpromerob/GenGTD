@@ -29,9 +29,7 @@ from ctypes import *
 class Payload(Structure):
     _fields_ = [("x", c_float),
                 ("y", c_float),
-                ("z", c_float),
-                ("a", c_float),
-                ("b", c_float)]
+                ("z", c_float)]
 
 '''
 This function sets the camera poses based on manual readings from optitrack (usin camera marker 'hat')
@@ -66,54 +64,12 @@ def set_cam_poses():
     return cam_poses
 
 
-# alpha, angle between ray and Z in YZ plane
-# beta, angle between ray and Z in XZ plane
-def get_virtual(alpha, beta):
-    
-    v2r = np.zeros((4,4,1)) # v2r : virtual camera space to real camera space
-        
-    cx = 0
-    cy = 0
-    cz = 0
-    alpha = (math.pi/180)*(alpha)
-    beta = (math.pi/180)*(beta)
-    gamma = 0
-
-    # Transformation matrices (translation + rotations around x, y, z)
-    mat_tran = np.array([[1,0,0,cx],
-                            [0,1,0,cy],
-                            [0,0,1,cz],
-                            [0,0,0,1]])
-
-    mat_rotx = np.array([[1,0,0,0],
-                            [0,math.cos(alpha), -math.sin(alpha),0],
-                            [0, math.sin(alpha), math.cos(alpha),0],
-                            [0,0,0,1]])
-
-    mat_roty = np.array([[math.cos(beta), 0, math.sin(beta),0],
-                            [0,1,0,0],
-                            [-math.sin(beta), 0, math.cos(beta),0],
-                            [0,0,0,1]])
-
-
-    mat_rotz = np.array([[math.cos(gamma), -math.sin(gamma), 0, 0],
-                            [math.sin(gamma), math.cos(gamma),0, 0],
-                            [0,0,1,0],
-                            [0,0,0,1]])
-
-    # General transformation matrix 'virtual camera to real camera' (v2r)
-    v2r[:,:,i] = mat_tran.dot(mat_rotz).dot(mat_roty).dot(mat_rotx)
-
-    return v2r
-
-    
-
 '''
 This function returns the matrix 'c2w' that converts coordinates in camera space to coordinates in world space.
 '''
 def get_transmats(cam_poses):
     
-    r2v = np.zeros((4,4,3))
+    c2w = np.zeros((4,4,3))
     for i in range(3): # Cam 1, 2, 3
         
         cx = cam_poses[i,0]
@@ -145,11 +101,11 @@ def get_transmats(cam_poses):
                              [0,0,1,0],
                              [0,0,0,1]])
 
-        # General transformation matrix 'camera to virtual' (r2v)
-        r2v[:,:,i] = mat_tran.dot(mat_rotz).dot(mat_roty).dot(mat_rotx)
+        # General transformation matrix 'camera to world' (c2w)
+        c2w[:,:,i] = mat_tran.dot(mat_rotz).dot(mat_roty).dot(mat_rotx)
     
     
-    return r2v
+    return c2w
 
 '''
 This function defines object pose from camera perspective
@@ -221,26 +177,26 @@ class ClientApp(object):
                 angles = get_angles(cp[:,cam_id-1], np.array([0,0,0]))
                 gt = c2w[:,:,cam_id-1].dot(np.array([cp[0,cam_id-1], cp[1,cam_id-1], cp[2,cam_id-1], 1]))
                 line = ' ({: 3.3f},{: 3.3f},{: 3.3f}) --> ({: 3.3f},{: 3.3f},{: 3.3f}) | ({: 3.3f},{: 3.3f}) \n ({: 3.3f},{: 3.3f},{: 3.3f}) <--\n'.format(b.position[0], b.position[1], b.position[2],cp[0,cam_id-1], cp[1,cam_id-1], cp[2,cam_id-1], angles[0], angles[1], gt[0], gt[1], gt[2])
-                print(line)
 
                 port_nb = 3000 + cam_id%3 # cam #1 --> 3001 | cam #2 --> 3002 | cam #3 --> 3000
 
                 print(port_nb)
 
-                # server_addr = ('172.16.222.31', port_nb)
-                # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                server_addr = ('172.16.222.31', port_nb)
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-                # try:
-                #     s.connect(server_addr)
-                #     payload_out = Payload(cp[0,cam_id-1], cp[1,cam_id-1], cp[2,cam_id-1], angles[0], angles[1])
-                #     nsent = s.send(payload_out)
-                # except AttributeError as ae:
-                #     print("Error creating the socket: {}".format(ae))
-                # except socket.error as se:
-                #     print("Exception on socket: {}".format(se))
-                # finally:
-                #     s.close()
+                try:
+                    s.connect(server_addr)
+                    payload_out = Payload(cp[0,cam_id-1], cp[1,cam_id-1], cp[2,cam_id-1])
+                    nsent = s.send(payload_out)
+                except AttributeError as ae:
+                    print("Error creating the socket: {}".format(ae))
+                except socket.error as se:
+                    print("Exception on socket: {}".format(se))
+                finally:
+                    s.close()
 
+                print(line)
 
 def main():    
 
