@@ -193,6 +193,7 @@ class ClientApp(object):
                     print("Error creating the socket: {}".format(ae))
                 except socket.error as se:
                     print("Exception on socket: {}".format(se))
+                    print(port_nb)
                 finally:
                     s.close()
 
