@@ -9,12 +9,24 @@ if __name__ == '__main__':
 
     filename = sys.argv[1]
 
-    csv_data = genfromtxt(filename, delimiter=',')
-    snn_xyz = csv_data[:,3:6]
+    if "rec_px_opt_" in filename:
+        d_source = "OPT"
+        date = filename.replace("rec_px_opt_", "")
+    elif "rec_px_snn_" in filename:
+        d_source = "SNN"
+        date = filename.replace("rec_px_snn_"), ""
+    else:
+        print("Wrong file! ... try rec_px_<opt|snn>_<YYYYmmdd_HHMM>.csv")
+        quit()
+    date = date.replace(".csv", "")
+
+    print(date)
+
+    pixel = genfromtxt(filename, delimiter=',')
     
     # print(len(opt_xyz))
 
-    l = len(snn_xyz)
+    l = len(pixel)
 
     x_1 = np.zeros((l,1))
     x_2 = np.zeros((l,1))
@@ -27,24 +39,24 @@ if __name__ == '__main__':
     idx_2 = 0
     idx_3 = 0
     for i in range(l):
-        if snn_xyz[i, 0] == 1:
-            x_1[idx_1] = snn_xyz[i, 1]
-            y_1[idx_1] = snn_xyz[i, 2]
+        if pixel[i, 0] == 1:
+            x_1[idx_1] = pixel[i, 1]
+            y_1[idx_1] = pixel[i, 2]
             idx_1 += 1
-        if snn_xyz[i, 0] == 2:
-            x_2[idx_2] = snn_xyz[i, 1]
-            y_2[idx_2] = snn_xyz[i, 2]
+        if pixel[i, 0] == 2:
+            x_2[idx_2] = pixel[i, 1]
+            y_2[idx_2] = pixel[i, 2]
             idx_2 += 1
-        if snn_xyz[i, 0] == 3:
-            x_3[idx_3] = snn_xyz[i, 1]
-            y_3[idx_3] = snn_xyz[i, 2]
+        if pixel[i, 0] == 3:
+            x_3[idx_3] = pixel[i, 1]
+            y_3[idx_3] = pixel[i, 2]
             idx_3 += 1
 
 
-
+    
 
     fig, axs = plt.subplots(3,3)
-    fig.suptitle('SNN Output (in pixel space)')
+    fig.suptitle(d_source + ' Output (in pixel space) \n @' + date)
     axs[0,0].plot(x_1)
     axs[0,0].set_ylabel('x')
     axs[0,0].set_ylim([0,640])
