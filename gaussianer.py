@@ -222,8 +222,10 @@ def animate(i, data_queue, axs, mu_ss):
     nb_pts = 1000
 
 
-    pdf_center = [-0.3, 0.5, 1.0, 1.0]
-    height = 5
+    # pdf_center = [0.0, 0.0, -0.8, 1.0] # for camera space
+    pdf_center = [-0.3, 0.5, 1.0, 1.0] # for world space
+    # height = 20 # for camera space
+    height = 10 # for world space
 
     ####################################################################################
     # Visualize Gaussians
@@ -255,7 +257,7 @@ def animate(i, data_queue, axs, mu_ss):
         axs[2].set_ylabel('z')
 
 
-    max_pdf = pdf.max()
+    max_pdf = height
 
     axs[0].legend()   
     axs[1].legend()   
@@ -264,30 +266,10 @@ def animate(i, data_queue, axs, mu_ss):
     x_center = xyz[0,np.argmax(pdf[3,0,:])]
     y_center = xyz[1,np.argmax(pdf[3,1,:])]
     z_center = xyz[2,np.argmax(pdf[3,2,:])]
+
     
     delta = 2
-    
-    min_x = 0.1*int(10*(x_center-delta))
-    max_x = 0.1*int(10*(x_center+delta))
-    min_y = 0.1*int(10*(y_center-delta))
-    max_y = 0.1*int(10*(y_center+delta))
-    min_z = 0.1*int(10*(z_center-delta))
-    max_z = 0.1*int(10*(z_center+delta))
-    
-    axs[0].set_xlim([x_center - delta, x_center + delta])
-    axs[1].set_xlim([y_center - delta, y_center + delta])
-    axs[2].set_xlim([z_center - delta, z_center + delta])
-    axs[0].set_ylim([0, max_pdf])
-    axs[1].set_ylim([0, max_pdf])
-    axs[2].set_ylim([0, max_pdf])
 
-    axs[0].set_xlabel('$x_w$')
-    axs[1].set_xlabel('$y_w$')
-    axs[2].set_xlabel('$z_w$')
-
-    axs[0].set_xticks(np.arange(min_x, max_x, 0.1))
-    axs[1].set_xticks(np.arange(min_y, max_y, 0.1))
-    axs[2].set_xticks(np.arange(min_z, max_z, 0.1))
 
     if killer.kill_now:
         quit()
