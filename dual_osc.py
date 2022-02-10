@@ -63,7 +63,7 @@ class ClientApp(object):
             if b.id_ == 4:
                 line = 'OPT ({: 3.3f},{: 3.3f},{: 3.3f})'.format(b.position[0], b.position[1], b.position[2])
                 rawpt_queue.put([b.position[0], b.position[1], b.position[2]])
-                print(line)
+                # print(line)
 
 
 
@@ -153,10 +153,20 @@ def animate(i, merge_queue, rawpt_queue, axs, t, mx, my, mz, rx, ry, rz, merge_x
     ry = ry[-100:]
     rz = rz[-100:]
 
+    error_x_txt = "e(x): " + str(int(100*abs(mx[-1] - rx[-1]))) + "cm"
+    error_y_txt = "e(y): " + str(int(100*abs(my[-1] - ry[-1]))) + "cm"
+    error_z_txt = "e(z): " + str(int(100*abs(mz[-1] - rz[-1]))) + "cm"
+
+    d_square = (mx[-1] - rx[-1])*(mx[-1] - rx[-1])+(my[-1] - ry[-1])*(my[-1] - ry[-1])+(mz[-1] - rz[-1])*(mz[-1] - rz[-1])
+    # print(d_square)
+
+    error_d_text = "e(d): " + str(int(100*math.sqrt(d_square)))+ "cm"
+
     # Draw x and y lists
     axs[0].clear()
     axs[0].plot(t, mx, color='r')
     axs[0].plot(t, rx, color='k')
+    axs[0].text(t[0], 0.2, error_x_txt, fontsize='xx-large')
     axs[0].xaxis.set_visible(False)
     axs[0].set_ylim([-0.5,0.5])
     axs[0].set_ylabel('x\n(towards/away-from hugin)')
@@ -164,6 +174,7 @@ def animate(i, merge_queue, rawpt_queue, axs, t, mx, my, mz, rx, ry, rz, merge_x
     axs[1].clear()
     axs[1].plot(t, my, color='g')
     axs[1].plot(t, ry, color='k')
+    axs[1].text(t[0], 0.7, error_y_txt, fontsize='xx-large')
     axs[1].xaxis.set_visible(False)
     axs[1].set_ylim([0,1])
     axs[1].set_ylabel('y\n(up/down)')
@@ -171,9 +182,12 @@ def animate(i, merge_queue, rawpt_queue, axs, t, mx, my, mz, rx, ry, rz, merge_x
     axs[2].clear()
     axs[2].plot(t, mz, color='b')
     axs[2].plot(t, rz, color='k')
+    axs[2].text(t[0], 1.2, error_z_txt, fontsize='xx-large')
     axs[2].xaxis.set_visible(False)
     axs[2].set_ylim([0.5,1.5])
     axs[2].set_ylabel('z\n(away-from/towards munin)')
+
+    axs[0].set_title(error_d_text)
 
     if killer.kill_now:
         quit()
