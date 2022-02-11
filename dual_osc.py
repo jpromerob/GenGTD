@@ -168,7 +168,7 @@ def animate(i, merge_queue, rawpt_queue, axs, t, mx, my, mz, rx, ry, rz, merge_x
     axs[0].plot(t, rx, color='k')
     axs[0].text(t[0], 0.2, error_x_txt, fontsize='xx-large')
     axs[0].xaxis.set_visible(False)
-    axs[0].set_ylim([-0.5,0.5])
+    axs[0].set_ylim([-0.7,0.3])
     axs[0].set_ylabel('x\n(towards/away-from hugin)')
 
     axs[1].clear()
@@ -206,8 +206,8 @@ def anima_main(merge_queue, rawpt_queue):
     rz = []
 
     i = 0
-    merge_xyz = [50,50,50]
-    rawpt_xyz = [50,50,50]
+    merge_xyz = [0,0,0]
+    rawpt_xyz = [0,0,0]
 
     # Set up plot to call animate() function periodically
     ani = animation.FuncAnimation(fig, animate, fargs=(merge_queue, rawpt_queue, axs, t, mx, my, mz, rx, ry, rz, merge_xyz, rawpt_xyz), interval=1)
