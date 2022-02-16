@@ -29,7 +29,8 @@ from ctypes import *
 class Payload(Structure):
     _fields_ = [("x", c_float),
                 ("y", c_float),
-                ("z", c_float)]
+                ("z", c_float),
+                ("p", c_float)]
 
 '''
 This function sets the camera poses based on manual readings from optitrack (usin camera marker 'hat')
@@ -187,7 +188,8 @@ class ClientApp(object):
 
                 try:
                     s.connect(server_addr)
-                    payload_out = Payload(cp[0,cam_id-1], cp[1,cam_id-1], cp[2,cam_id-1])
+                    presence = 1
+                    payload_out = Payload(cp[0,cam_id-1], cp[1,cam_id-1], cp[2,cam_id-1], presence)
                     nsent = s.send(payload_out)
                 except AttributeError as ae:
                     print("Error creating the socket: {}".format(ae))
