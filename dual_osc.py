@@ -153,14 +153,14 @@ def animate(i, merge_queue, rawpt_queue, axs, t, mx, my, mz, rx, ry, rz, merge_x
     ry = ry[-100:]
     rz = rz[-100:]
 
-    error_x_txt = "e(x): " + str(int(100*abs(mx[-1] - rx[-1]))) + "cm"
-    error_y_txt = "e(y): " + str(int(100*abs(my[-1] - ry[-1]))) + "cm"
-    error_z_txt = "e(z): " + str(int(100*abs(mz[-1] - rz[-1]))) + "cm"
+    error_x_txt = "e(x): " + str(int(1000*abs(mx[-1] - rx[-1]))) + "mm"
+    error_y_txt = "e(y): " + str(int(1000*abs(my[-1] - ry[-1]))) + "mm"
+    error_z_txt = "e(z): " + str(int(1000*abs(mz[-1] - rz[-1]))) + "mm"
 
     d_square = (mx[-1] - rx[-1])*(mx[-1] - rx[-1])+(my[-1] - ry[-1])*(my[-1] - ry[-1])+(mz[-1] - rz[-1])*(mz[-1] - rz[-1])
     # print(d_square)
 
-    error_d_text = "e(d): " + str(int(100*math.sqrt(d_square)))+ "cm"
+    error_d_text = "e(d): " + str(int(1000*math.sqrt(d_square)))+ "mm"
 
     # Draw x and y lists
     axs[0].clear()
