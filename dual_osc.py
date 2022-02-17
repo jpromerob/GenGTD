@@ -87,7 +87,7 @@ def data_main(merge_queue, nb_port):
         csock, client_address = ssock.accept()
         print("Accepted connection from {:s}".format(client_address[0]))
 
-        buff = csock.recv(512)
+        buff = csock.recv(2048)
         counter = 0
         while buff:
             counter += 1
@@ -103,7 +103,7 @@ def data_main(merge_queue, nb_port):
             # z = math.sin((45+i*5)*math.pi/180)+0.5
             # merge_queue.put([x, y, z])
 
-            buff = csock.recv(512)
+            buff = csock.recv(2048)
 
             if killer.kill_now:
                 break
