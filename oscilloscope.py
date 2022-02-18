@@ -4,6 +4,7 @@ import matplotlib.animation as animation
 import time
 import math
 
+
 # import argparse
 # import attr
 import signal
@@ -57,7 +58,7 @@ def data_main(data_queue, nb_port):
         csock, client_address = ssock.accept()
         print("Accepted connection from {:s}".format(client_address[0]))
 
-        buff = csock.recv(2048)
+        buff = csock.recv(sizeof(Payload))
         counter = 0
         while buff:
             counter += 1
@@ -65,7 +66,7 @@ def data_main(data_queue, nb_port):
             if counter == 1:
                 data_queue.put([payload_in.x, payload_in.y, payload_in.z])
                 counter = 0
-            print([payload_in.x, payload_in.y, payload_in.z])
+            # print([payload_in.x, payload_in.y, payload_in.z])
 
             # i += 1
             # x = math.sin((0+i*5)*math.pi/180)+0.5
@@ -73,7 +74,7 @@ def data_main(data_queue, nb_port):
             # z = math.sin((45+i*5)*math.pi/180)+0.5
             # data_queue.put([x, y, z])
 
-            buff = csock.recv(2048)
+            buff = csock.recv(sizeof(Payload))
 
             if killer.kill_now:
                 break
@@ -113,24 +114,37 @@ def animate(i, data_queue, axs, t, x, y, z, xyz):
     y = y[-100:]
     z = z[-100:]
 
+    txt_x = txt_y = txt_z = "No signal"
+    if x[-1] != -100:
+        txt_x = "x = {:.3f} [m] ".format(x[-1]) 
+    if y[-1] != -100:
+        txt_y = "y = {:.3f} [m] ".format(y[-1]) 
+    if z[-1] != -100:
+        txt_z = "z = {:.3f} [m] ".format(z[-1]) 
+
     # Draw x and y lists
     axs[0].clear()
     axs[0].plot(t, x, color='r')
+    axs[0].text(t[0], 0.1, txt_x, fontsize='xx-large')
     axs[0].xaxis.set_visible(False)
-    axs[0].set_ylim([-0.5,0.5])
-    axs[0].set_ylabel('x\n(towards/away-from hugin)')
+    axs[0].set_ylim([-0.7,0.3])
+    axs[0].set_ylabel('x')
 
     axs[1].clear()
     axs[1].plot(t, y, color='g')
+    axs[1].text(t[0], 0.8, txt_y, fontsize='xx-large')
     axs[1].xaxis.set_visible(False)
     axs[1].set_ylim([0,1])
-    axs[1].set_ylabel('y\n(up/down)')
+    axs[1].set_ylabel('y')
 
     axs[2].clear()
     axs[2].plot(t, z, color='b')
+    axs[2].text(t[0], 1.3, txt_z, fontsize='xx-large')
     axs[2].xaxis.set_visible(False)
     axs[2].set_ylim([0.5,1.5])
-    axs[2].set_ylabel('z\n(away-from/towards munin)')
+    axs[2].set_ylabel('z')
+
+    axs[0].set_title("Object Position in Workspace")
 
     if killer.kill_now:
         quit()
@@ -139,14 +153,15 @@ def animate(i, data_queue, axs, t, x, y, z, xyz):
 def anima_main(data_queue):
 
     # Create figure for plotting
-    fig, axs = plt.subplots(3)
+    fig, axs = plt.subplots(3, figsize=(8, 12))
+
     t = []
     x = []
     y = []
     z = []
 
     i = 0
-    xyz = [50,50,50]
+    xyz = [-100,-100,-100]
 
     # Set up plot to call animate() function periodically
     ani = animation.FuncAnimation(fig, animate, fargs=(data_queue, axs, t, x, y, z, xyz), interval=1)

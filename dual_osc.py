@@ -87,7 +87,7 @@ def data_main(merge_queue, nb_port):
         csock, client_address = ssock.accept()
         print("Accepted connection from {:s}".format(client_address[0]))
 
-        buff = csock.recv(2048)
+        buff = csock.recv(8192)
         counter = 0
         while buff:
             counter += 1
@@ -103,7 +103,7 @@ def data_main(merge_queue, nb_port):
             # z = math.sin((45+i*5)*math.pi/180)+0.5
             # merge_queue.put([x, y, z])
 
-            buff = csock.recv(2048)
+            buff = csock.recv(8192)
 
             if killer.kill_now:
                 break
@@ -165,27 +165,27 @@ def animate(i, merge_queue, rawpt_queue, axs, t, mx, my, mz, rx, ry, rz, merge_x
     # Draw x and y lists
     axs[0].clear()
     axs[0].plot(t, mx, color='r')
-    axs[0].plot(t, rx, color='k')
-    axs[0].text(t[0], 0.2, error_x_txt, fontsize='xx-large')
+    axs[0].plot(t, rx, color='k', linestyle='--')
+    axs[0].text(t[0], 0.1, error_x_txt, fontsize='xx-large')
     axs[0].xaxis.set_visible(False)
     axs[0].set_ylim([-0.7,0.3])
-    axs[0].set_ylabel('x\n(towards/away-from hugin)')
+    axs[0].set_ylabel('x')
 
     axs[1].clear()
     axs[1].plot(t, my, color='g')
-    axs[1].plot(t, ry, color='k')
-    axs[1].text(t[0], 0.7, error_y_txt, fontsize='xx-large')
+    axs[1].plot(t, ry, color='k', linestyle='--')
+    axs[1].text(t[0], 0.8, error_y_txt, fontsize='xx-large')
     axs[1].xaxis.set_visible(False)
     axs[1].set_ylim([0,1])
-    axs[1].set_ylabel('y\n(up/down)')
+    axs[1].set_ylabel('y')
 
     axs[2].clear()
     axs[2].plot(t, mz, color='b')
-    axs[2].plot(t, rz, color='k')
-    axs[2].text(t[0], 1.2, error_z_txt, fontsize='xx-large')
+    axs[2].plot(t, rz, color='k', linestyle='--')
+    axs[2].text(t[0], 1.3, error_z_txt, fontsize='xx-large')
     axs[2].xaxis.set_visible(False)
     axs[2].set_ylim([0.5,1.5])
-    axs[2].set_ylabel('z\n(away-from/towards munin)')
+    axs[2].set_ylabel('z')
 
     axs[0].set_title(error_d_text)
 
@@ -196,7 +196,7 @@ def animate(i, merge_queue, rawpt_queue, axs, t, mx, my, mz, rx, ry, rz, merge_x
 def anima_main(merge_queue, rawpt_queue):
 
     # Create figure for plotting
-    fig, axs = plt.subplots(3)
+    fig, axs = plt.subplots(3, figsize=(8, 12))
     t = []
     mx = []
     my = []
